@@ -1,41 +1,22 @@
-name: Build APK
 
-on: [push, pull_request]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+[app]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+title = Tufan VPN
+package.name = tufanvpn
+package.domain = org.tufan
 
-    steps:
-      - name: سحب المشروع
-        uses: actions/checkout@v4
+source.dir = .
+source.include_exts = py,png,jpg,kv
 
-      - name: تثبيت Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+version = 0.1
 
-      - name: تثبيت الأدوات
-        run: |
-          sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
-          pip install buildozer cython
+requirements = python3,kivy
 
-      - name: تثبيت Android SDK
-        run: |
-          mkdir -p $HOME/android-sdk
-          yes | sdkmanager --licenses
+orientation = portrait
+fullscreen = 0
 
-      - name: بناء APK
-        run: |
-          buildozer android debug
+[buildozer]
 
-      - name: رفع APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Tufan-VPN-Package
-          path: bin/*.apk
-
+log_level = 2
+warn_on_root = 1
