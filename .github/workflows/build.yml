@@ -1,50 +1,38 @@
-name: Build Tufan VPN APK
-
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
+name: Final Tufan Build
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo apt update
 
       - name: Install System Dependencies
         run: |
-          sudo apt update
-          sudo apt install -y \
-            git zip unzip openjdk-17-jdk \
-            autoconf libtool pkg-config zlib1g-dev \
-            libncurses5-dev libncursesw5-dev libtinfo6 \
-            cmake libffi-dev libssl-dev build-essential
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
 
-      - name: Install Buildozer and Cython
+      - name: Install Buildozer
         run: |
-          pip install --upgrade pip
-          pip install "cython<3.0.0" buildozer
+          pip install --user --upgrade "cython<3.0.0" buildozer
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build APK
+      - name: Build Android APK
         run: |
-          # هذه الأوامر تجبر Buildozer على استخدام أدوات السيرفر الجاهزة
-          export ANDROID_SDK_HOME=$ANDROID_SDK_ROOT
-          export ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME
-          yes | buildozer android debug
+          # هذا الأمر يحل مشكلة الـ Broken pipe نهائياً
+          buildozer android debug --auto-accept-sdk-licenses
         env:
           ACCEPT_SDK_LICENSE: "True"
 
-      - name: Upload Final APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Tufan-VPN-Final
           path: bin/*.apk
+
 
 
