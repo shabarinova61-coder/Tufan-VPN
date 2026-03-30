@@ -1,50 +1,48 @@
-name: Final Tufan VPN Build
-
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
+name: Ultimate Tufan VPN Build
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04 # الإصدار الأكثر استقراراً لـ Kivy حالياً
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
+      - name: Extreme Cleanup
+        # حذف كل ما هو غير ضروري لتفريغ 20GB+ ومنع انهيار السيرفر
         run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android/sdk/ndk
           sudo apt update
 
       - name: Install System Dependencies
         run: |
-          sudo apt install -y \
-            git zip unzip openjdk-17-jdk \
-            autoconf libtool pkg-config zlib1g-dev \
-            libncurses5-dev libncursesw5-dev libtinfo5 \
-            cmake libffi-dev libssl-dev build-essential \
-            ant # قمنا بإضافة أداة ANT هنا لمنع توقف البناء
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool \
+          pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake \
+          libffi-dev libssl-dev build-essential ant
 
-      - name: Install Buildozer and Cython
+      - name: Setup Buildozer
         run: |
-          pip install --upgrade pip
-          pip install "cython<3.0.0" buildozer
+          pip install --user --upgrade "cython<3.0.0" buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build Android APK
+      - name: Direct Hardware-Linked Build
         run: |
+          # إجبار Buildozer على استخدام المسارات الرسمية للسيرفر
           export ANDROID_HOME=$ANDROID_SDK_ROOT
-          # الموافقة الرقمية على التراخيص
+          export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653
+          
+          # حقن تراخيص Google رقمياً لتجنب توقف البناء عند "اتفاقية الترخيص"
           mkdir -p $ANDROID_HOME/licenses
           echo -e "8933bad161af9178dba494d1d2b164710192a090\nd56f5187479451e44173303381e441e6c468a993" > $ANDROID_HOME/licenses/android-sdk-license
-          # تشغيل البناء مع تجاوز التحميلات المعطلة
+          
+          # تنظيف أي مخلفات قديمة ثم البدء بالبناء النهائي
+          buildozer android clean
           buildozer android debug --auto-accept-sdk-licenses
         env:
           ACCEPT_SDK_LICENSE: "True"
 
-      - name: Upload Final APK
+      - name: Upload Tufan APK
         uses: actions/upload-artifact@v4
         with:
           name: Tufan-VPN-Final
