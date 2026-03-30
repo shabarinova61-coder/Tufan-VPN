@@ -1,32 +1,23 @@
-name: Build APK
-on: 
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+[app]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+title = Tufan VPN
+package.name = tufanvpn
+package.domain = org.tufan
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+source.dir = .
+source.include_exts = py,png,jpg,kv
 
-      - name: Build with Buildozer
-        uses: ArtemSerebrennikov/buildozer-action@v1
-        with:
-          command: buildozer android debug
-          buildozer_version: master
+version = 0.1
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Tufan-VPN-Final-Package
-          path: bin/*.apk
-          retention-days: 7
+requirements = python3,kivy
+
+orientation = portrait
+
+fullscreen = 0
+
+
+[buildozer]
+
+log_level = 2
+warn_on_root = 1
 
