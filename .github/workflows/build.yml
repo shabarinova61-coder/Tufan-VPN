@@ -1,9 +1,7 @@
-name: Build Android APK with Buildozer
+name: Build Tufan VPN APK
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
@@ -20,30 +18,29 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt update
           sudo apt install -y \
             git zip unzip openjdk-17-jdk \
             autoconf libtool pkg-config zlib1g-dev \
             libncurses5-dev libncursesw5-dev libtinfo6 \
-            cmake libffi-dev libssl-dev
+            cmake libffi-dev libssl-dev build-essential
 
-      - name: Install Python dependencies
+      - name: Install Buildozer and Cython
         run: |
           pip install --upgrade pip
-          pip install cython
-          pip install buildozer
+          pip install "cython<3.0.0" buildozer
 
-      - name: Build with Buildozer (auto-accept licenses)
+      - name: Build APK (Final Attempt)
+        # استخدام سطر الأوامر المباشر لتجنب مشاكل الـ Actions الخارجية
         run: |
           yes | buildozer android debug
+        env:
+          ACCEPT_SDK_LICENSE: "True"
 
-      - name: Upload APK artifact
+      - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: Tufan-VPN
+          name: Tufan-VPN-Package
           path: bin/*.apk
-
-
-
