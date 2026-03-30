@@ -1,15 +1,32 @@
-[app]
-title = Tufan VPN
-package.name = tufanvpn
-package.domain = org.tufan
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
-requirements = python3,kivy,kivymd,psutil
-orientation = portrait
-android.permissions = INTERNET, ACCESS_NETWORK_STATE
-android.api = 33
-android.minapi = 21
-android.sdk = 33
-android.ndk = 25b
-android.archs = arm64-v8a, armeabi-v7a
+name: Build APK
+on: 
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Build with Buildozer
+        uses: ArtemSerebrennikov/buildozer-action@v1
+        with:
+          command: buildozer android debug
+          buildozer_version: master
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tufan-VPN-Final-Package
+          path: bin/*.apk
+          retention-days: 7
+
