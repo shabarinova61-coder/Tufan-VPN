@@ -1,34 +1,48 @@
-name: Build APK
-on: 
+name: Build Android APK with Buildozer
+
+on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:   # يسمح بالتشغيل اليدوي
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip build-essential git python3 python3-dev ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev
-
-      - name: Build with Buildozer
-        # تم تصحيح الاسم هنا بدقة (ArtemSerebrennikov)
-        uses: ArtemSerebrennikov/buildozer-action@v1
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          command: yes | buildozer android debug
-          buildozer_version: master
+          python-version: '3.11'
 
-      - name: Upload APK
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git zip unzip openjdk-17-jdk \
+            autoconf libtool pkg-config zlib1g-dev \
+            libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install cython
+          pip install buildozer
+
+      - name: Build with Buildozer (auto-accept licenses)
+        run: |
+          yes | buildozer android debug
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Tufan-VPN-Final-APK
+          name: Tufan-VPN
           path: bin/*.apk
-          retention-days: 7
 
 
