@@ -1,1 +1,1 @@
-python3, kivy, kivymd, psutil, prettytable
+python3,kivy,kivymd,requests
