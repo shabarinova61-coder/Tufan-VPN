@@ -1,44 +1,59 @@
-name: Ultimate Tufan Build V2
-on: [push, workflow_dispatch]
+name: Build Tufan APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout Code
+      - name: 📥 تحميل المشروع
         uses: actions/checkout@v4
 
-      - name: System Cleanup & Install
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
-          sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool \
-          pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake \
-          libffi-dev libssl-dev build-essential ant
+      - name: ⚡ كاش لتسريع البناء
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.gradle
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
 
-      - name: Setup Buildozer
+      - name: 🧹 تثبيت الأدوات الأساسية
         run: |
-          pip install --user --upgrade "cython<3.0.0" "buildozer>=1.5.0"
+          sudo apt update
+          sudo apt install -y openjdk-17-jdk python3-pip git zip unzip wget
+
+      - name: ⚡ تثبيت Buildozer و Cython
+        run: |
+          pip install --user "cython<3.0.0" buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Secure Path Construction & Build
-        run: |
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          # إنشاء المجلدات مسبقاً لمنع خطأ FileNotFoundError
-          mkdir -p .buildozer/android/platform
-          
-          # الموافقة على التراخيص
-          mkdir -p $ANDROID_HOME/licenses
-          echo -e "8933bad161af9178dba494d1d2b164710192a090\nd56f5187479451e44173303381e441e6c468a993" > $ANDROID_HOME/licenses/android-sdk-license
-          
-          # البناء المباشر بدون تنظيف (لأن السيرفر نظيف أصلاً)
-          buildozer android debug --auto-accept-sdk-licenses
-        env:
-          ACCEPT_SDK_LICENSE: "True"
+      - name: 🧹 تنظيف ملفات البناء القديمة
+        run: buildozer android clean
 
-      - name: Upload Final APK
+      - name: 🚀 تحميل SDK و NDK إذا لم تكن موجودة
+        run: |
+          mkdir -p ~/.buildozer/android/platform
+          cd ~/.buildozer/android/platform
+          # تحميل NDK r25c إذا لم يكن موجود
+          if [ ! -d "android-ndk-r25c" ]; then
+            wget https://dl.google.com/android/repository/android-ndk-r25c-linux.zip
+            unzip android-ndk-r25c-linux.zip
+          fi
+          # تحميل SDK إذا لم يكن موجود
+          if [ ! -d "android-sdk" ]; then
+            wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+            unzip cmdline-tools.zip -d android-sdk
+          fi
+
+      - name: 🚀 بناء التطبيق
+        run: buildozer -v android debug --auto-accept-sdk-licenses
+
+      - name: 📦 رفع APK
         uses: actions/upload-artifact@v4
         with:
-          name: Tufan-VPN-Final
+          name: Tufan-APK
           path: bin/*.apk
