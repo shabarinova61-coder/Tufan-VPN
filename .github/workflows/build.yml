@@ -13,6 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -32,10 +39,11 @@ jobs:
           pip install --upgrade pip
           pip install "cython<3.0.0" buildozer
 
-      - name: Build APK (Final Attempt)
-        # استخدام سطر الأوامر المباشر لتجنب مشاكل الـ Actions الخارجية
+      - name: Build APK
+        # استخدمنا --verbose لرؤية الخطأ الحقيقي لو حدث، وغيرنا طريقة الـ yes
         run: |
-          yes | buildozer android debug
+          export APP_ANDROID_ACCEPT_SDK_LICENSE=1
+          buildozer -v android debug
         env:
           ACCEPT_SDK_LICENSE: "True"
 
@@ -44,3 +52,4 @@ jobs:
         with:
           name: Tufan-VPN-Package
           path: bin/*.apk
+
