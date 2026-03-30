@@ -1,1 +1,4 @@
-python3,kivy==2.3.0,kivymd==1.1.1,requests
+kivy==2.3.0
+kivymd==1.1.1
+requests
+cython<3.0.0
