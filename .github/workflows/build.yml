@@ -1,44 +1,46 @@
-name: Build Tufan APK
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+name: Tufan Ultimate Build
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout المشروع
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-          key: buildozer-${{ hashFiles('buildozer.spec') }}
-
-      - name: تثبيت الأدوات الأساسية
+      - name: Extreme System Setup
         run: |
+          # تفريغ مساحة وحل مشكلة libtinfo5
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
           sudo apt update
-          sudo apt install -y openjdk-17-jdk python3-pip git zip unzip wget
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool \
+          pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake \
+          libffi-dev libssl-dev build-essential ant
 
-      - name: تثبيت Buildozer وCython
+      - name: Install Buildozer & Cython
         run: |
-          pip install --user "cython<3.0.0" buildozer
+          pip install --user --upgrade "cython<3.0.0" buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: تنظيف ملفات البناء القديمة
-        run: buildozer android clean
+      - name: Direct APK Construction
+        run: |
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          
+          # حسم أمر المسارات: إنشاء المجلد الذي اشتكى منه النظام في المحاولة 42
+          mkdir -p .buildozer/android/platform/python-for-android
+          
+          # حقن التراخيص لتجنب التوقف
+          mkdir -p $ANDROID_HOME/licenses
+          echo -e "8933bad161af9178dba494d1d2b164710192a090\nd56f5187479451e44173303381e441e6c468a993" > $ANDROID_HOME/licenses/android-sdk-license
+          
+          # تشغيل البناء مباشرة بدون أمر clean المسبب للخطأ
+          buildozer android debug --auto-accept-sdk-licenses
+        env:
+          ACCEPT_SDK_LICENSE: "True"
 
-      - name: بناء APK
-        run: buildozer -v android debug --auto-accept-sdk-licenses
-
-      - name: رفع APK
+      - name: Upload Tufan APK
         uses: actions/upload-artifact@v4
         with:
-          name: Tufan-APK
+          name: Tufan-VPN-Final
           path: bin/*.apk
