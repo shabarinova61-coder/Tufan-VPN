@@ -6,21 +6,20 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 1.0
 
-# المتطلبات التي حددتها أنت
-requirements = python3,kivy==2.3.0,kivymd,requests,urllib3,certifi
+# المتطلبات الأساسية فقط لضمان النجاح
+requirements = python3,kivy==2.3.0,kivymd,requests
 
 orientation = portrait
 android.api = 33
 android.minapi = 21
 android.sdk = 33
-android.ndk = 25c
+android.ndk = 25b
 android.archs = arm64-v8a, armeabi-v7a
 
-# لضمان عدم البحث عن مسارات مفقودة
-p4a.branch = master
-android.enable_androidx = True
+# منع التحديثات اليدوية التي تستهلك المساحة
+android.skip_update = True
 android.accept_sdk_license = True
-android.gradle_dependencies = 'com.android.tools.build:gradle:7.4.2'
+android.enable_androidx = True
 
 [buildozer]
 log_level = 1
