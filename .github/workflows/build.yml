@@ -1,47 +1,26 @@
-name: Tufan Ultimate Final
+name: Tufan Final Fix
 on: [push, workflow_dispatch]
-
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Force Free Space
-        # حذف الملفات الضخمة غير المستخدمة في السيرفر لتوفير 30 جيجابايت
+      - uses: actions/checkout@v4
+      - name: Free Disk Space & Install Tools
         run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android/sdk/ndk
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev build-essential ant
-
-      - name: Setup Buildozer
+          # تثبيت Aidl يدوياً لحل مشكلة المحاولة 46
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "build-tools;33.0.0" "platform-tools" "platforms;android-33"
+      - name: Build APK
         run: |
           pip install --user --upgrade "cython<3.0.0" buildozer
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Precision Build (Using Server Tools)
-        run: |
-          # استخدام أدوات الأندرويد الموجودة مسبقاً في سيرفر GitHub لتوفير الوقت والمساحة
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          export ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653
-          
-          # إنشاء مجلدات العمل يدوياً لمنع أخطاء الـ Traceback
+          export PATH=$PATH:$HOME/.local/bin
+          # إنشاء المسارات لمنع FileNotFoundError
           mkdir -p .buildozer/android/platform/python-for-android
-          
-          # الموافقة الرقمية على التراخيص
-          mkdir -p $ANDROID_HOME/licenses
-          echo -e "8933bad161af9178dba494d1d2b164710192a090\nd56f5187479451e44173303381e441e6c468a993" > $ANDROID_HOME/licenses/android-sdk-license
-          
-          # تشغيل البناء المباشر
           buildozer android debug --auto-accept-sdk-licenses
-        env:
-          ACCEPT_SDK_LICENSE: "True"
-
-      - name: Upload APK
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Tufan-VPN-Final
+          name: Tufan-APK
           path: bin/*.apk
-
